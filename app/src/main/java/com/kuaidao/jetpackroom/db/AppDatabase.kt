@@ -26,7 +26,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.kuaidao.jetpackroom.AppExecutors
 import com.kuaidao.jetpackroom.DataGenerator.generateProducts
 import com.kuaidao.jetpackroom.DataGenerator.generateRoom
-import com.kuaidao.jetpackroom.db.AppDatabase
 import com.kuaidao.jetpackroom.db.dao.ClassRoomDao
 import com.kuaidao.jetpackroom.db.dao.UserDao
 import com.kuaidao.jetpackroom.db.entity.ClassRoom
@@ -34,9 +33,8 @@ import com.kuaidao.jetpackroom.db.entity.User
 
 //@Database(entities = [User::class, ClassRoom::class], version = 2)
 @Database(
-    entities = [User::class, ClassRoom::class], version = 3, autoMigrations = [
-        AutoMigration(from = 2, to = 3)
-//        AutoMigration(from = 2, to = 3, spec = AppDatabase.MyAutoMigration::class)
+    entities = [User::class, ClassRoom::class], version = 4, autoMigrations = [
+        AutoMigration(from = 3, to = 4)
     ], exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -44,9 +42,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun classRoomDao(): ClassRoomDao
     private val mIsDatabaseCreated = MutableLiveData<Boolean>()
 
-    @RenameTable(fromTableName = "User", toTableName = "appuser")
-//    @RenameColumn("user", "first_name", "first")
-    class MyAutoMigration : AutoMigrationSpec
+     @RenameTable(fromTableName = "User", toTableName = "appuser")
+     class RenameMigration : AutoMigrationSpec
 
 
     /**

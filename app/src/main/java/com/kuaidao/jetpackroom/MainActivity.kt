@@ -1,6 +1,9 @@
 package com.kuaidao.jetpackroom
 
+import android.content.Context
 import android.os.Bundle
+import android.util.AttributeSet
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.kuaidao.jetpackroom.databinding.ActivityMainBinding
@@ -25,6 +28,8 @@ class MainActivity : AppCompatActivity() {
         classRoom()
 
     }
+
+
 
     private fun classRoom() {
         lifecycleScope.launch {

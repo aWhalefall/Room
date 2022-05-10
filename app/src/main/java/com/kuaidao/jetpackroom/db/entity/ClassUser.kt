@@ -23,12 +23,14 @@ data class ClassRoom(
 )
 
 
+
 /**
  * Author: yangweichao
  * Date:   2022/5/9 3:55 下午
  * Description:班级与用户一对多
  */
-@Entity(tableName = "User")
+//@Entity(tableName = "User")
+@Entity
 data class User(
     @PrimaryKey val uid: Int,
     @ColumnInfo(name = "first_name") val firstName: String?,
@@ -39,9 +41,17 @@ data class User(
     @ColumnInfo(defaultValue = "test")
     val autoMigrationTest: String="",
     @ColumnInfo(defaultValue = "ext01")
-    val ext: String=""
-
+    val ext: String="",
+    @Embedded val address: Address?= null
 )
+
+data class Address(
+    val street: String?,
+    val state: String?,
+    val city: String?,
+    @ColumnInfo(name = "post_code") val postCode: Int
+)
+
 
 /**
  * Author: yangweichao
