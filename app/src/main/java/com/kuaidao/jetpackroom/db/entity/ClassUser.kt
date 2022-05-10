@@ -18,23 +18,28 @@ data class ClassRoom(
     @PrimaryKey val roomId: String,
     @NonNull
     val masterTeacher: String ="",
-    @NonNull
-    val roomGrade: Int= 1
+    @Nullable
+    val roomGrade: Int?= 1
 )
+
 
 /**
  * Author: yangweichao
  * Date:   2022/5/9 3:55 下午
  * Description:班级与用户一对多
  */
-
-@Entity
+@Entity(tableName = "User")
 data class User(
     @PrimaryKey val uid: Int,
     @ColumnInfo(name = "first_name") val firstName: String?,
     @ColumnInfo(name = "last_name") val lastName: String?,
+
     @Nullable
-    var userRoomId: Int?
+    var userRoomId: String?,
+    @ColumnInfo(defaultValue = "test")
+    val autoMigrationTest: String="",
+    @ColumnInfo(defaultValue = "ext01")
+    val ext: String=""
 
 )
 
@@ -51,5 +56,5 @@ data class ClassRoomWithUser(
         parentColumn = "roomId",
         entityColumn = "userRoomId"
     )
-    val roomlists: List<User>
+    val roomlists: List<User> = emptyList()
 )

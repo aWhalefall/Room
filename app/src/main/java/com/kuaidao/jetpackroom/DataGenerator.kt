@@ -9,7 +9,7 @@ object DataGenerator {
     fun generateProducts(): List<User> {
         val list = mutableListOf<User>()
         for (i in 0  until 100) {
-            val temp=User(uid = i, firstName = "杨$i", lastName = "卫超$i",i)
+            val temp=User(uid = i, firstName = "杨$i", lastName = "卫超$i",i.toString())
             list.add(temp)
         }
         return list

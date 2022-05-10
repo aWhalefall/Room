@@ -110,3 +110,9 @@ dependencies {
     }
     }).allowMainThreadQueries()
     .build();
+
+
+3 .autoMigration Failure in 'MyAutoMigration': The table renamed from 'User' to 'User1' is not found in the new version of the database.
+
+
+

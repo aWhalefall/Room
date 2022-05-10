@@ -29,9 +29,9 @@ class MainActivity : AppCompatActivity() {
     private fun classRoom() {
         lifecycleScope.launch {
             val build = AppDatabase.getInstance(this@MainActivity, AppExecutors())
-            val classRoom = build.classRoomDao()
+            val classRoom = build?.classRoomDao()
             val list: List<ClassRoomWithUser> = withContext(Dispatchers.IO) {
-                classRoom.getClassRoom()
+                classRoom!!.getClassRoom()
             }
             mBinding.version.text = list.toString()
         }
@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
     private fun MainActivity.userLiST() {
         lifecycleScope.launch {
             val build = AppDatabase.getInstance(this@MainActivity, AppExecutors())
-            val userDao = build.userDao()
+            val userDao = build!!.userDao()
             val users: List<User> = withContext(Dispatchers.IO) {
                 userDao.getAll()
             }

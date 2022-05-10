@@ -13,115 +13,125 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.kuaidao.jetpackroom.db
 
-package com.kuaidao.jetpackroom.db;
+import android.content.Context
+import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.room.*
+import androidx.room.migration.AutoMigrationSpec
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.kuaidao.jetpackroom.AppExecutors
+import com.kuaidao.jetpackroom.DataGenerator.generateProducts
+import com.kuaidao.jetpackroom.DataGenerator.generateRoom
+import com.kuaidao.jetpackroom.db.AppDatabase
+import com.kuaidao.jetpackroom.db.dao.ClassRoomDao
+import com.kuaidao.jetpackroom.db.dao.UserDao
+import com.kuaidao.jetpackroom.db.entity.ClassRoom
+import com.kuaidao.jetpackroom.db.entity.User
 
-import android.content.Context;
+//@Database(entities = [User::class, ClassRoom::class], version = 2)
+@Database(
+    entities = [User::class, ClassRoom::class], version = 3, autoMigrations = [
+        AutoMigration(from = 2, to = 3)
+//        AutoMigration(from = 2, to = 3, spec = AppDatabase.MyAutoMigration::class)
+    ], exportSchema = true
+)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun userDao(): UserDao
+    abstract fun classRoomDao(): ClassRoomDao
+    private val mIsDatabaseCreated = MutableLiveData<Boolean>()
 
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.room.Database;
-import androidx.room.Room;
-import androidx.room.RoomDatabase;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
+    @RenameTable(fromTableName = "User", toTableName = "appuser")
+//    @RenameColumn("user", "first_name", "first")
+    class MyAutoMigration : AutoMigrationSpec
 
-import com.kuaidao.jetpackroom.AppExecutors;
-import com.kuaidao.jetpackroom.DataGenerator;
-import com.kuaidao.jetpackroom.db.dao.ClassRoomDao;
-import com.kuaidao.jetpackroom.db.dao.UserDao;
-import com.kuaidao.jetpackroom.db.entity.ClassRoom;
-import com.kuaidao.jetpackroom.db.entity.User;
-
-import java.util.List;
-
-@Database(entities = {User.class,ClassRoom.class}, version = 2)
-public abstract class AppDatabase extends RoomDatabase {
-
-    private static AppDatabase sInstance;
-
-    @VisibleForTesting
-    public static final String DATABASE_NAME = "basic-sample-db";
-
-    public abstract UserDao userDao();
-
-    public abstract ClassRoomDao classRoomDao();
-
-
-    private final MutableLiveData<Boolean> mIsDatabaseCreated = new MutableLiveData<>();
-
-    public static AppDatabase getInstance(final Context context, final AppExecutors executors) {
-        if (sInstance == null) {
-            synchronized (AppDatabase.class) {
-                if (sInstance == null) {
-                    sInstance = buildDatabase(context.getApplicationContext(), executors);
-                    sInstance.updateDatabaseCreated(context.getApplicationContext());
-                }
-            }
-        }
-        return sInstance;
-    }
 
     /**
-     * Build the database. {@link Builder#build()} only sets up the database configuration and
-     * creates a new instance of the database.
-     * The SQLite database is only created when it's accessed for the first time.
+     * Check whether the database already exists and expose it via [.getDatabaseCreated]
      */
-    private static AppDatabase buildDatabase(final Context appContext,
-                                             final AppExecutors executors) {
-        return Room.databaseBuilder(appContext, AppDatabase.class, DATABASE_NAME)
-                .addCallback(new Callback() {
-                    @Override
-                    public void onCreate(@NonNull SupportSQLiteDatabase db) {
-                        super.onCreate(db);
-                        executors.diskIO().execute(() -> {
+    private fun updateDatabaseCreated(context: Context) {
+        if (context.getDatabasePath(DATABASE_NAME).exists()) {
+            setDatabaseCreated()
+        }
+    }
+
+    private fun setDatabaseCreated() {
+        mIsDatabaseCreated.postValue(true)
+    }
+
+    val databaseCreated: LiveData<Boolean>
+        get() = mIsDatabaseCreated
+
+    companion object {
+        private var sInstance: AppDatabase? = null
+
+        @VisibleForTesting
+        val DATABASE_NAME = "basic-sample-db"
+
+        @JvmStatic
+        fun getInstance(context: Context, executors: AppExecutors): AppDatabase? {
+            if (sInstance == null) {
+                synchronized(AppDatabase::class.java) {
+                    if (sInstance == null) {
+                        sInstance = buildDatabase(context.applicationContext, executors)
+                        sInstance!!.updateDatabaseCreated(context.applicationContext)
+                    }
+                }
+            }
+            return sInstance
+        }
+
+        /**
+         * Build the database. [Builder.build] only sets up the database configuration and
+         * creates a new instance of the database.
+         * The SQLite database is only created when it's accessed for the first time.
+         */
+        private fun buildDatabase(
+            appContext: Context,
+            executors: AppExecutors
+        ): AppDatabase {
+            return Room.databaseBuilder(appContext, AppDatabase::class.java, DATABASE_NAME)
+                .addCallback(object : Callback() {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        super.onCreate(db)
+                        executors.diskIO().execute {
+
                             // Generate the data for pre-population
-                            AppDatabase database = AppDatabase.getInstance(appContext, executors);
-                            List<User> users = DataGenerator.generateProducts();
-                            List<ClassRoom> rooms = DataGenerator.generateRoom();
-                            insertData(database, users, rooms);
+                            val database = getInstance(appContext, executors)
+                            val users = generateProducts()
+                            val rooms = generateRoom()
+                            insertData(database, users, rooms)
                             // notify that the database was created and it's ready to be used
-                            database.setDatabaseCreated();
-                        });
+                            database!!.setDatabaseCreated()
+                        }
                     }
                 })
                 .addMigrations(MIGRATION_1_2)
-                .build();
-    }
+                .build()
+        }
 
-    private static void insertData(final AppDatabase database, final List<User> users, final List<ClassRoom> classRooms) {
-        database.runInTransaction(() -> {
-            database.userDao().insertAll(users);
-            database.classRoomDao().insertAll(classRooms);
-        });
-    }
+        private fun insertData(
+            database: AppDatabase?,
+            users: List<User>,
+            classRooms: List<ClassRoom>
+        ) {
+            database!!.runInTransaction {
+                database.userDao().insertAll(users)
+                database.classRoomDao().insertAll(classRooms)
+            }
+        }
 
-    /**
-     * Check whether the database already exists and expose it via {@link #getDatabaseCreated()}
-     */
-    private void updateDatabaseCreated(final Context context) {
-        if (context.getDatabasePath(DATABASE_NAME).exists()) {
-            setDatabaseCreated();
+        private val MIGRATION_1_2: Migration = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE user ADD COLUMN userRoomId INTEGER")
+                database.execSQL("CREATE TABLE IF NOT EXISTS classroom (`roomId` TEXT NOT NULL, `masterTeacher` TEXT NOT NULL, `roomGrade` INTEGER NOT NULL, PRIMARY KEY(`roomId`))")
+            }
+        }
+        private val MIGRATION_2_3: Migration = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {}
         }
     }
-
-    private void setDatabaseCreated() {
-        mIsDatabaseCreated.postValue(true);
-    }
-
-
-    public LiveData<Boolean> getDatabaseCreated() {
-        return mIsDatabaseCreated;
-    }
-
-    private static final Migration MIGRATION_1_2 = new Migration(1, 2) {
-
-        @Override
-        public void migrate(@NonNull SupportSQLiteDatabase database) {
-            database.execSQL("ALTER TABLE user ADD COLUMN userRoomId INTEGER");
-            database.execSQL("CREATE TABLE IF NOT EXISTS classroom (`roomId` TEXT NOT NULL, `masterTeacher` TEXT NOT NULL, `roomGrade` INTEGER NOT NULL, PRIMARY KEY(`roomId`))");
-        }
-    };
 }

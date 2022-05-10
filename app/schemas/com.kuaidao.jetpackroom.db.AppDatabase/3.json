@@ -1,0 +1,98 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "fabe7f1bf616d2a491ab48ffa6c0af14",
+    "entities": [
+      {
+        "tableName": "User",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER NOT NULL, `first_name` TEXT, `last_name` TEXT, `userRoomId` TEXT, `autoMigrationTest` TEXT NOT NULL DEFAULT 'test', `ext` TEXT NOT NULL DEFAULT 'ext01', PRIMARY KEY(`uid`))",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstName",
+            "columnName": "first_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastName",
+            "columnName": "last_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "userRoomId",
+            "columnName": "userRoomId",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "autoMigrationTest",
+            "columnName": "autoMigrationTest",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'test'"
+          },
+          {
+            "fieldPath": "ext",
+            "columnName": "ext",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'ext01'"
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "uid"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "ClassRoom",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`roomId` TEXT NOT NULL, `masterTeacher` TEXT NOT NULL, `roomGrade` INTEGER, PRIMARY KEY(`roomId`))",
+        "fields": [
+          {
+            "fieldPath": "roomId",
+            "columnName": "roomId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "masterTeacher",
+            "columnName": "masterTeacher",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "roomGrade",
+            "columnName": "roomGrade",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "roomId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fabe7f1bf616d2a491ab48ffa6c0af14')"
+    ]
+  }
+}

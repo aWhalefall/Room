@@ -3,10 +3,44 @@
 
 手动升级
 
+ 需要实现升级路径复写相关函数
+
+private static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+     @Override
+     public void migrate(@NonNull SupportSQLiteDatabase database) {
+         database.execSQL("ALTER TABLE user ADD COLUMN userRoomId INTEGER");
+         database.execSQL("CREATE TABLE IF NOT EXISTS classroom (`roomId` TEXT NOT NULL, `masterTeacher` TEXT NOT NULL, `roomGrade` INTEGER NOT NULL, PRIMARY KEY(`roomId`))");
+     }
+    };
+
+
  添加新表
  增加字段
+
+
  修改字段
  删除字段
+
+
+> https://www.jianshu.com/p/feba577213b7
+
+SQLite 仅仅支持 ALTER TABLE 语句的一部分功能，我们可以用 ALTER TABLE 语句来更改一个表的名字，也可向表中增加一个字段（列），但是我们不能删除一个已经存在的字段，或者更改一个已经存在的字段的名称、数据类型、限定符等等。
+
+改变表名 - ALTER TABLE 旧表名 RENAME TO 新表名
+
+增加一列 - ALTER TABLE 表名 ADD COLUMN 列名 数据类型
+
+
+
+自动升级方式
+
+
+1.@Database schema 中声明的实体，如添加新列或表，更新主键、外键或索引，或更改列的默认值，Room 会自动检测出这些变化，
+不需要额外介入。
+
+
+
+
  
 
 
