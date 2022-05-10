@@ -6,7 +6,7 @@ import com.kuaidao.jetpackroom.db.entity.User
 @Dao
 interface UserDao {
     @Query("SELECT * FROM user")
-    fun getAll(): List<User>
+   suspend fun getAll(): List<User>
 
     @Query("SELECT * FROM user WHERE uid IN (:userIds)")
     fun loadAllByIds(userIds: IntArray): List<User>

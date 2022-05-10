@@ -30,12 +30,14 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.kuaidao.jetpackroom.AppExecutors;
 import com.kuaidao.jetpackroom.DataGenerator;
+import com.kuaidao.jetpackroom.db.dao.ClassRoomDao;
 import com.kuaidao.jetpackroom.db.dao.UserDao;
+import com.kuaidao.jetpackroom.db.entity.ClassRoom;
 import com.kuaidao.jetpackroom.db.entity.User;
 
 import java.util.List;
 
-@Database(entities = {User.class}, version = 1)
+@Database(entities = {User.class,ClassRoom.class}, version = 2)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase sInstance;
@@ -44,6 +46,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public static final String DATABASE_NAME = "basic-sample-db";
 
     public abstract UserDao userDao();
+
+    public abstract ClassRoomDao classRoomDao();
 
 
     private final MutableLiveData<Boolean> mIsDatabaseCreated = new MutableLiveData<>();
@@ -75,19 +79,22 @@ public abstract class AppDatabase extends RoomDatabase {
                         executors.diskIO().execute(() -> {
                             // Generate the data for pre-population
                             AppDatabase database = AppDatabase.getInstance(appContext, executors);
-                            List<User> products = DataGenerator.generateProducts();
-                            insertData(database, products);
+                            List<User> users = DataGenerator.generateProducts();
+                            List<ClassRoom> rooms = DataGenerator.generateRoom();
+                            insertData(database, users, rooms);
                             // notify that the database was created and it's ready to be used
                             database.setDatabaseCreated();
                         });
                     }
-                }).allowMainThreadQueries()
+                })
+                .addMigrations(MIGRATION_1_2)
                 .build();
     }
 
-    private static void insertData(final AppDatabase database, final List<User> users) {
+    private static void insertData(final AppDatabase database, final List<User> users, final List<ClassRoom> classRooms) {
         database.runInTransaction(() -> {
             database.userDao().insertAll(users);
+            database.classRoomDao().insertAll(classRooms);
         });
     }
 
@@ -113,11 +120,8 @@ public abstract class AppDatabase extends RoomDatabase {
 
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            database.execSQL("CREATE VIRTUAL TABLE IF NOT EXISTS `productsFts` USING FTS4("
-                    + "`name` TEXT, `description` TEXT, content=`products`)");
-            database.execSQL("INSERT INTO productsFts (`rowid`, `name`, `description`) "
-                    + "SELECT `id`, `name`, `description` FROM products");
-
+            database.execSQL("ALTER TABLE user ADD COLUMN userRoomId INTEGER");
+            database.execSQL("CREATE TABLE IF NOT EXISTS classroom (`roomId` TEXT NOT NULL, `masterTeacher` TEXT NOT NULL, `roomGrade` INTEGER NOT NULL, PRIMARY KEY(`roomId`))");
         }
     };
 }

@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "30356705f25af0455433fcd88a5dc1a9",
+    "identityHash": "01b7762448cd3db7d19a8ec89c38b240",
     "entities": [
       {
         "tableName": "User",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER NOT NULL, `first_name` TEXT, `last_name` TEXT, PRIMARY KEY(`uid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` INTEGER NOT NULL, `first_name` TEXT, `last_name` TEXT, `userRoomId` INTEGER, PRIMARY KEY(`uid`))",
         "fields": [
           {
             "fieldPath": "uid",
@@ -25,6 +25,12 @@
             "columnName": "last_name",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "userRoomId",
+            "columnName": "userRoomId",
+            "affinity": "INTEGER",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -40,7 +46,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '30356705f25af0455433fcd88a5dc1a9')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '01b7762448cd3db7d19a8ec89c38b240')"
     ]
   }
 }
