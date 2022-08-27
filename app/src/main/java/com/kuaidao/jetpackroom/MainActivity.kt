@@ -1,9 +1,6 @@
 package com.kuaidao.jetpackroom
 
-import android.content.Context
 import android.os.Bundle
-import android.util.AttributeSet
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.kuaidao.jetpackroom.databinding.ActivityMainBinding
@@ -18,6 +15,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mBinding: ActivityMainBinding
 
+    var dbName: Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding = ActivityMainBinding.inflate(layoutInflater)
@@ -25,16 +23,45 @@ class MainActivity : AppCompatActivity() {
 
         //userLiST()
 
-        classRoom()
+        // classRoom()
 
+        mBinding.btnCreatdb.setOnClickListener {
+            dbName++
+            classRoomByName("${dbName} _kuaidao")
+        }
+        mBinding.btnInset.setOnClickListener {
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    db?.userDao()?.insertAll(
+                        User(
+                            firstName = "yang",
+                            lastName = "weichao",
+                            uid = System.currentTimeMillis().toInt(),
+                            userRoomId = "1"
+                        )
+                    )
+                }
+            }
+        }
     }
-
 
 
     private fun classRoom() {
         lifecycleScope.launch {
             val build = AppDatabase.getInstance(this@MainActivity, AppExecutors())
             val classRoom = build?.classRoomDao()
+            val list: List<ClassRoomWithUser> = withContext(Dispatchers.IO) {
+                classRoom!!.getClassRoom()
+            }
+            mBinding.version.text = list.toString()
+        }
+    }
+
+    var db: AppDatabase? = null
+    private fun classRoomByName(dbName: String) {
+        lifecycleScope.launch {
+            db = AppDatabase.getInstance(this@MainActivity, AppExecutors(), dbName)
+            val classRoom = db?.classRoomDao()
             val list: List<ClassRoomWithUser> = withContext(Dispatchers.IO) {
                 classRoom!!.getClassRoom()
             }

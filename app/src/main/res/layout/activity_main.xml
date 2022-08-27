@@ -7,6 +7,18 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <Button
+        android:id="@+id/btn_creatdb"
+        android:layout_width="match_parent"
+        android:text="创建数据库动态"
+        android:layout_height="40dp"/>
+
+    <Button
+        android:text="插入"
+        android:id="@+id/btn_inset"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"/>
+
     <TextView
         android:id="@+id/version"
         android:layout_width="match_parent"
